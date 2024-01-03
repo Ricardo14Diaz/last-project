@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de Preguntas y Respuestas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+
+    #question-container {
+      margin-top: 20px;
+    }
+
+    #options-container {
+      margin-top: 10px;
+    }
+
+    #timer {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Juego de Preguntas y Respuestas</h1>
+  <label for="player1Name">Jugador 1: </label>
+  <input type="text" id="player1Name">
+  <br>
+  <label for="player2Name">Jugador 2: </label>
+  <input type="text" id="player2Name">
+  <br>
+  <button onclick="startGame()">Comenzar Juego</button>
+  <div id="question-container"></div>
+  <div id="options-container"></div>
+  <div id="timer">Tiempo restante: <span id="time">10</span> segundos</div>
+  <button onclick="nextQuestion()">Siguiente Pregunta</button>
+
+  <script>
+    const players = [];
+    let currentPlayerIndex = 0;
+    let currentQuestionIndex = 0;
+    let timer;
+
+    const questions = [
+      {
+        question: "¿Cuál es la capital de Francia?",
+        options: ["Londres", "Berlín", "París", "Madrid"],
+        correctAnswer: "París"
+      },
+      {
+        question: "¿En qué año comenzó la Segunda Guerra Mundial?",
+        options: ["1939", "1941", "1945", "1949"],
+        correctAnswer: "1939"
+      },
+      {
+        question: "¿Quién es el autor de la frase (Pienso, luego existo)",
+        options:["Platón","Galileo Galilei","Descartes","Sócrates","Francis Bacon"],
+        correctAnswer: "Descartes"
+      },
+    ];
+
+    function startGame() {
+      const player1NameInput = document.getElementById("player1Name");
+      const player2NameInput = document.getElementById("player2Name");
+
+      const player1Name = player1NameInput.value.trim();
+      const player2Name = player2NameInput.value.trim();
+
+      if (player1Name === "" || player2Name === "") {
+        alert("Ingresa nombres de jugadores válidos.");
+        return;
+      }
+
+      players.push({ name: player1Name, points: 0, time: 0 });
+      players.push({ name: player2Name, points: 0, time: 0 });
+
+      player1NameInput.disabled = true;
+      player2NameInput.disabled = true;
+
+      displayQuestion();
+      startTimer();
+    }
+
+    function displayQuestion() {
+      const questionContainer = document.getElementById("question-container");
+      const optionsContainer = document.getElementById("options-container");
+      const currentQuestion = questions[currentQuestionIndex];
+
+      questionContainer.textContent = currentQuestion.question;
+      optionsContainer.innerHTML = "";
+
+      currentQuestion.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.onclick = () => checkAnswer(option);
+        optionsContainer.appendChild(button);
+      });
+    }
+
+    function startTimer() {
+      let timeLeft = 10;
+      document.getElementById("time").textContent = timeLeft;
+
+      timer = setInterval(() => {
+        if (timeLeft > 0) {
+          document.getElementById("time").textContent = timeLeft;
+          timeLeft--;
+        } else {
+          clearInterval(timer);
+          alert("¡Tiempo agotado!");
+          handleIncorrectAnswer();
+        }
+      }, 1000);
+    }
+
+    function checkAnswer(selectedOption) {
+      const currentTime = 10 - document.getElementById("time").textContent; // Tiempo restante al responder
+      const currentQuestion = questions[currentQuestionIndex];
+      const currentPlayer = players[currentPlayerIndex];
+
+      clearInterval(timer);
+
+      if (selectedOption === currentQuestion.correctAnswer) {
+        alert("¡Respuesta correcta!");
+        currentPlayer.points += calculatePoints(currentTime);
+      } else {
+        alert("Respuesta incorrecta. La respuesta correcta es: " + currentQuestion.correctAnswer);
+        handleIncorrectAnswer();
+      }
+
+      nextQuestion();
+    }
+
+    function handleIncorrectAnswer() {
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length; // Cambiar al siguiente jugador
+      displayQuestion();
+      startTimer();
+    }
+
+    function calculatePoints(time) {
+      // Ajusta la fórmula según tus preferencias
+      // En este ejemplo, se otorgan puntos basados en el tiempo de respuesta
+      return Math.max(1, 10 - time);
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length; // Cambiar al siguiente jugador
+        displayQuestion();
+        startTimer();
+      } else {
+        displayResults();
+      }
+    }
+
+    function displayResults() {
+      const results = players.map(player => `${player.name}: Puntos - ${player.points}`).join('\n');
+      alert("Resultados:\n\n" + results);
+      resetGame();
+    }
+
+    function resetGame() {
+      currentQuestionIndex = 0;
+      currentPlayerIndex = 0;
+      players.length = 0;
+
+      const player1NameInput = document.getElementById("player1Name");
+      const player2NameInput = document.getElementById("player2Name");
+
+      player1NameInput.value = "";
+      player2NameInput.value = "";
+      player1NameInput.disabled = false;
+      player2NameInput.disabled = false;
+    }
+  </script>
+</body>
+</html>
